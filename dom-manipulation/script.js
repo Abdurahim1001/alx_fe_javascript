@@ -22,6 +22,21 @@ function displayNotification(message) {
   }, 5000); // Hide after 5 seconds
 }
 
+// Function to sync quotes between local and server data
+async function syncQuotes() {
+  try {
+    const response = await fetch(serverUrl);
+    if (!response.ok) throw new Error("Failed to fetch data from server.");
+    
+    const serverQuotes = await response.json();
+    updateLocalQuotes(serverQuotes);
+    displayNotification("Quotes successfully synced with the server.");
+  } catch (error) {
+    console.error("Error syncing quotes:", error);
+    displayNotification("Error syncing quotes with server.");
+  }
+}
+
 // Function to display a random quote
 function showRandomQuote() {
   const randomIndex = Math.floor(Math.random() * quotes.length);
@@ -191,20 +206,6 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// Function to fetch quotes from the server periodically
-async function fetchQuotesFromServer() {
-  try {
-    const response = await fetch(serverUrl);
-    if (!response.ok) throw new Error("Failed to fetch server data.");
-    
-    const data = await response.json();
-    updateLocalQuotes(data);
-  } catch (error) {
-    console.error("Error fetching quotes:", error);
-    displayNotification("Failed to fetch data from server.");
-  }
-}
-
 // Conflict resolution: User chooses to keep local or server data
 function resolveConflict(localQuote, serverQuote) {
   const userChoice = confirm(
@@ -237,8 +238,7 @@ function updateLocalQuotes(serverQuotes) {
   displayQuotes(quotes);
 }
 
-// Call fetch function every 60 seconds
-setInterval(fetchQuotesFromServer, 60000);
+// Call syncQuotes every 60 seconds
+setInterval(syncQuotes, 60000);
 
-// Call initialize function on page load
-initialize();
+// Call initialize
