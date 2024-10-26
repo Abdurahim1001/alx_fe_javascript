@@ -5,7 +5,8 @@ let quotes = JSON.parse(localStorage.getItem("quotes")) || [
   { id: 3, text: "In the end, we only regret the chances we didn't take.", category: "Motivational" },
 ];
 
-const serverUrl = "https://jsonplaceholder.typicode.com/posts"; // Mock API URL
+// Mock API URL for fetching quotes
+const serverUrl = "https://jsonplaceholder.typicode.com/posts";
 
 // Function to display a random quote
 function showRandomQuote() {
@@ -167,25 +168,11 @@ function updateLocalQuotes(serverQuotes) {
   serverQuotes.forEach(serverQuote => {
     if (!localIds.has(serverQuote.id)) {
       quotes.push({ id: serverQuote.id, text: serverQuote.title, category: "General" });
-    } else {
-      const localQuoteIndex = quotes.findIndex(q => q.id === serverQuote.id);
-      if (JSON.stringify(quotes[localQuoteIndex]) !== JSON.stringify(serverQuote)) {
-        resolveConflict(quotes[localQuoteIndex], serverQuote);
-      }
     }
   });
 
   saveQuotes();
   displayQuotes(quotes);
-}
-
-// Resolve conflicts
-function resolveConflict(localQuote, serverQuote) {
-  alert(`Conflict detected for quote: "${localQuote.text}". The server data will take precedence.`);
-  const index = quotes.findIndex(q => q.id === localQuote.id);
-  if (index !== -1) {
-    quotes[index] = { ...serverQuote, category: localQuote.category };
-  }
 }
 
 // Call fetch function every 60 seconds
