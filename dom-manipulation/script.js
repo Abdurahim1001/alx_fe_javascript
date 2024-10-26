@@ -22,7 +22,13 @@ function displayNotification(message) {
   }, 5000); // Hide after 5 seconds
 }
 
-// Function to sync quotes between local and server data
+// Function to sync quotes every 60 seconds
+function syncQuotes() {
+  displayNotification("Syncing quotes with server...");
+  fetchQuotesFromServer();
+}
+
+// Function to fetch quotes from server and sync with local storage
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch(serverUrl);
@@ -230,4 +236,14 @@ function updateLocalQuotes(serverQuotes) {
     if (!localQuote) {
       quotes.push({ id: serverQuote.id, text: serverQuote.title, category: "General" });
     } else if (localQuote.text !== serverQuote.title) {
- 
+      resolveConflict(localQuote, serverQuote);
+    }
+  });
+
+  saveQuotes();
+  displayQuotes(quotes);
+}
+
+// Initialize the app and start syncing every 60 seconds
+initialize();
+setInterval(syncQuotes, 60000);
