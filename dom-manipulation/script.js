@@ -43,7 +43,7 @@ function addQuote() {
 function updateCategoryDropdown(newCategory) {
   const categoryFilter = document.getElementById("categoryFilter");
   const existingCategories = Array.from(categoryFilter.options).map(option => option.value);
-  
+
   if (!existingCategories.includes(newCategory)) {
     const option = document.createElement("option");
     option.value = newCategory;
@@ -52,7 +52,7 @@ function updateCategoryDropdown(newCategory) {
   }
 }
 
-// Function to create the Add Quote form dynamically
+// Create the Add Quote form dynamically
 function createAddQuoteForm() {
   const formContainer = document.createElement("div");
   formContainer.innerHTML = `
@@ -89,7 +89,7 @@ function displayQuotes(filteredQuotes) {
   });
 }
 
-// Function to populate categories dynamically
+// Populate categories dynamically
 function populateCategories() {
   const categorySet = new Set(quotes.map(quote => quote.category));
   const categoryFilter = document.getElementById("categoryFilter");
@@ -118,7 +118,7 @@ function initialize() {
   filterQuotes();
 }
 
-// Function to export quotes to a JSON file
+// Export quotes to a JSON file
 function exportToJsonFile() {
   const dataStr = JSON.stringify(quotes, null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
@@ -132,7 +132,7 @@ function exportToJsonFile() {
   document.body.removeChild(link);
 }
 
-// Function to import quotes from a JSON file
+// Import quotes from a JSON file
 function importFromJsonFile(event) {
   const fileReader = new FileReader();
   fileReader.onload = function(event) {
@@ -150,15 +150,19 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// Function to fetch quotes from the server periodically
-async function fetchQuotesFromServer() {
-  try {
-    const response = await fetch(serverUrl);
-    const data = await response.json();
-    updateLocalQuotes(data);
-  } catch (error) {
-    console.error("Error fetching quotes:", error);
-  }
+// Function to fetch quotes from the server
+function fetchQuotesFromServer() {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", serverUrl, true);
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      const data = JSON.parse(xhr.responseText);
+      updateLocalQuotes(data);
+    } else {
+      console.error("Failed to fetch quotes:", xhr.statusText);
+    }
+  };
+  xhr.send();
 }
 
 // Sync local quotes with server quotes
