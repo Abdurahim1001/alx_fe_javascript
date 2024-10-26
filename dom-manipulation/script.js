@@ -131,7 +131,7 @@ function populateCategories() {
 }
 
 // Initialize and show last viewed quote if available
-function initialize() {
+async function initialize() {
   createAddQuoteForm();
   populateCategories();
   const lastViewedQuote = JSON.parse(sessionStorage.getItem("lastViewedQuote"));
@@ -141,48 +141,19 @@ function initialize() {
 
   document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
   filterQuotes();
+
+  // Sync quotes with server at the start
+  await syncQuotes();
 }
 
-// Function to export quotes to a JSON file
-function exportToJsonFile() {
-  const dataStr = JSON.stringify(quotes, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "quotes.json";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-// Function to import quotes from a JSON file
-function importFromJsonFile(event) {
-  const fileReader = new FileReader();
-  fileReader.onload = function(event) {
-    try {
-      const importedQuotes = JSON.parse(event.target.result);
-      quotes.push(...importedQuotes);
-      saveQuotes();
-      alert("Quotes imported successfully!");
-      populateCategories();
-      filterQuotes();
-    } catch (error) {
-      alert("Invalid JSON file.");
-    }
-  };
-  fileReader.readAsText(event.target.files[0]);
-}
-
-// Function to fetch quotes from the server periodically
-async function fetchQuotesFromServer() {
+// Function to sync local quotes with server quotes
+async function syncQuotes() {
   try {
     const response = await fetch(serverUrl);
-    const data = await response.json();
-    updateLocalQuotes(data);
+    const serverQuotes = await response.json();
+    updateLocalQuotes(serverQuotes);
   } catch (error) {
-    console.error("Error fetching quotes:", error);
+    console.error("Error syncing quotes:", error);
   }
 }
 
@@ -201,7 +172,7 @@ function updateLocalQuotes(serverQuotes) {
 }
 
 // Call fetch function every 60 seconds
-setInterval(fetchQuotesFromServer, 60000);
+setInterval(syncQuotes, 60000);
 
 // Call initialize function on page load
 initialize();
