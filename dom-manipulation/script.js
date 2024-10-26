@@ -131,7 +131,7 @@ function populateCategories() {
 }
 
 // Initialize and show last viewed quote if available
-async function initialize() {
+function initialize() {
   createAddQuoteForm();
   populateCategories();
   const lastViewedQuote = JSON.parse(sessionStorage.getItem("lastViewedQuote"));
@@ -175,14 +175,14 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// Function to sync local quotes with server quotes
-async function syncQuotes() {
+// Function to fetch quotes from the server periodically
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(serverUrl);
-    const serverQuotes = await response.json();
-    updateLocalQuotes(serverQuotes);
+    const data = await response.json();
+    updateLocalQuotes(data);
   } catch (error) {
-    console.error("Error syncing quotes:", error);
+    console.error("Error fetching quotes:", error);
   }
 }
 
@@ -201,7 +201,7 @@ function updateLocalQuotes(serverQuotes) {
 }
 
 // Call fetch function every 60 seconds
-setInterval(syncQuotes, 60000);
+setInterval(fetchQuotesFromServer, 60000);
 
 // Call initialize function on page load
 initialize();
