@@ -8,6 +8,20 @@ let quotes = JSON.parse(localStorage.getItem("quotes")) || [
 // Mock API URL for fetching quotes
 const serverUrl = "https://jsonplaceholder.typicode.com/posts";
 
+// Notification area for sync messages
+const notificationArea = document.createElement("div");
+notificationArea.id = "notificationArea";
+notificationArea.style.cssText = "display: none; background-color: #e2e3e5; padding: 10px; margin-bottom: 10px;";
+document.body.insertBefore(notificationArea, document.body.firstChild);
+
+function displayNotification(message) {
+  notificationArea.innerText = message;
+  notificationArea.style.display = "block";
+  setTimeout(() => {
+    notificationArea.style.display = "none";
+  }, 5000); // Hide after 5 seconds
+}
+
 // Function to display a random quote
 function showRandomQuote() {
   const randomIndex = Math.floor(Math.random() * quotes.length);
@@ -57,10 +71,12 @@ async function sendQuoteToServer(quote) {
       throw new Error("Failed to send quote to server.");
     }
 
-    const data = await response.json(); // Handle server response if necessary
+    const data = await response.json();
     console.log("Quote successfully sent to server:", data);
+    displayNotification("Quote successfully synced to server.");
   } catch (error) {
     console.error("Error sending quote:", error);
+    displayNotification("Failed to sync quote to server.");
   }
 }
 
@@ -179,20 +195,41 @@ function importFromJsonFile(event) {
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch(serverUrl);
+    if (!response.ok) throw new Error("Failed to fetch server data.");
+    
     const data = await response.json();
     updateLocalQuotes(data);
   } catch (error) {
     console.error("Error fetching quotes:", error);
+    displayNotification("Failed to fetch data from server.");
+  }
+}
+
+// Conflict resolution: User chooses to keep local or server data
+function resolveConflict(localQuote, serverQuote) {
+  const userChoice = confirm(
+    `Conflict detected:\n\nLocal quote: "${localQuote.text}"\nServer quote: "${serverQuote.title}"\n\nClick "OK" to keep the server quote or "Cancel" to keep your local quote.`
+  );
+
+  if (userChoice) {
+    localQuote.text = serverQuote.title;
+    localQuote.category = "General";
+    displayNotification("Server quote has been saved.");
+  } else {
+    displayNotification("Local quote has been retained.");
   }
 }
 
 // Sync local quotes with server quotes
 function updateLocalQuotes(serverQuotes) {
-  const localIds = new Set(quotes.map(q => q.id));
+  const localQuotesMap = new Map(quotes.map(quote => [quote.id, quote]));
 
   serverQuotes.forEach(serverQuote => {
-    if (!localIds.has(serverQuote.id)) {
+    const localQuote = localQuotesMap.get(serverQuote.id);
+    if (!localQuote) {
       quotes.push({ id: serverQuote.id, text: serverQuote.title, category: "General" });
+    } else if (localQuote.text !== serverQuote.title) {
+      resolveConflict(localQuote, serverQuote);
     }
   });
 
