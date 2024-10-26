@@ -27,9 +27,25 @@ function addQuote() {
     document.getElementById("newQuoteText").value = '';
     document.getElementById("newQuoteCategory").value = '';
 
-    // Show the newly added quote immediately using innerHTML
+    // Show the newly added quote immediately
     document.getElementById("quoteDisplay").innerHTML = `<p>"${quoteText}"</p><span>- ${quoteCategory}</span>`;
   } else {
     alert("Please enter both a quote and a category.");
   }
 }
+
+// Function to create the Add Quote form dynamically
+function createAddQuoteForm() {
+  const formContainer = document.createElement("div");
+
+  formContainer.innerHTML = `
+    <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
+    <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
+    <button onclick="addQuote()">Add Quote</button>
+  `;
+
+  document.body.appendChild(formContainer);
+}
+
+// Call createAddQuoteForm() to add the form on page load
+createAddQuoteForm();
