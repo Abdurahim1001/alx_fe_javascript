@@ -1,9 +1,11 @@
 // Load quotes from Local Storage or use default quotes if not found
 let quotes = JSON.parse(localStorage.getItem("quotes")) || [
-  { text: "The journey of a thousand miles begins with one step.", category: "Inspirational" },
-  { text: "Life is what happens when you're busy making other plans.", category: "Life" },
-  { text: "In the end, we only regret the chances we didn't take.", category: "Motivational" },
+  { id: 1, text: "The journey of a thousand miles begins with one step.", category: "Inspirational" },
+  { id: 2, text: "Life is what happens when you're busy making other plans.", category: "Life" },
+  { id: 3, text: "In the end, we only regret the chances we didn't take.", category: "Motivational" },
 ];
+
+const serverUrl = "https://jsonplaceholder.typicode.com/posts"; // Mock API URL
 
 // Function to display a random quote
 function showRandomQuote() {
@@ -24,8 +26,8 @@ function addQuote() {
   const quoteCategory = document.getElementById("newQuoteCategory").value;
 
   if (quoteText && quoteCategory) {
-    // Add new quote to the quotes array
-    quotes.push({ text: quoteText, category: quoteCategory });
+    const newQuote = { id: Date.now(), text: quoteText, category: quoteCategory }; // Unique ID for the quote
+    quotes.push(newQuote);
     saveQuotes(); // Update Local Storage
     updateCategoryDropdown(quoteCategory); // Update category dropdown
 
@@ -158,6 +160,50 @@ function importFromJsonFile(event) {
   };
   fileReader.readAsText(event.target.files[0]);
 }
+
+// Function to fetch quotes from the server periodically
+function fetchQuotesFromServer() {
+  fetch(serverUrl)
+    .then(response => response.json())
+    .then(data => {
+      updateLocalQuotes(data);
+    })
+    .catch(error => console.error("Error fetching quotes:", error));
+}
+
+// Sync local quotes with server quotes
+function updateLocalQuotes(serverQuotes) {
+  const updatedCount = serverQuotes.length; // Count of server quotes
+  const localIds = new Set(quotes.map(q => q.id));
+
+  serverQuotes.forEach(serverQuote => {
+    if (!localIds.has(serverQuote.id)) {
+      // New quote from server, add to local storage
+      quotes.push({ id: serverQuote.id, text: serverQuote.title, category: "General" }); // Default category
+    } else {
+      // Handle conflict resolution if the quote exists
+      const localQuoteIndex = quotes.findIndex(q => q.id === serverQuote.id);
+      if (JSON.stringify(quotes[localQuoteIndex]) !== JSON.stringify(serverQuote)) {
+        resolveConflict(quotes[localQuoteIndex], serverQuote);
+      }
+    }
+  });
+
+  saveQuotes(); // Save updated quotes
+  displayQuotes(quotes); // Refresh displayed quotes
+}
+
+// Resolve conflicts
+function resolveConflict(localQuote, serverQuote) {
+  alert(`Conflict detected for quote: "${localQuote.text}". The server data will take precedence.`);
+  const index = quotes.findIndex(q => q.id === localQuote.id);
+  if (index !== -1) {
+    quotes[index] = { ...serverQuote, category: localQuote.category }; // Retain local category
+  }
+}
+
+// Call fetch function every 60 seconds
+setInterval(fetchQuotesFromServer, 60000); // 60 seconds
 
 // Call initialize function on page load
 initialize();
