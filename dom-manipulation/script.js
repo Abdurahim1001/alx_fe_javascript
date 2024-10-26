@@ -22,7 +22,7 @@ function saveQuotes() {
 }
 
 // Function to add a new quote
-function addQuote() {
+async function addQuote() {
   const quoteText = document.getElementById("newQuoteText").value;
   const quoteCategory = document.getElementById("newQuoteCategory").value;
 
@@ -34,8 +34,33 @@ function addQuote() {
     document.getElementById("newQuoteText").value = '';
     document.getElementById("newQuoteCategory").value = '';
     showRandomQuote();
+
+    // Send new quote to the server
+    await sendQuoteToServer(newQuote);
   } else {
     alert("Please enter both a quote and a category.");
+  }
+}
+
+// Function to send the new quote to the server
+async function sendQuoteToServer(quote) {
+  try {
+    const response = await fetch(serverUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(quote),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send quote to server.");
+    }
+
+    const data = await response.json(); // Handle server response if necessary
+    console.log("Quote successfully sent to server:", data);
+  } catch (error) {
+    console.error("Error sending quote:", error);
   }
 }
 
