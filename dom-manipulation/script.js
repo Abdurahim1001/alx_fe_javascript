@@ -47,11 +47,16 @@ function createAddQuoteForm() {
   formContainer.innerHTML = `
     <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
     <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
-    <button onclick="addQuote()">Add Quote</button>
-    <button onclick="exportToJsonFile()">Export Quotes</button>
-    <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
+    <button id="addQuoteBtn">Add Quote</button>
+    <button id="exportBtn">Export Quotes</button>
+    <input type="file" id="importFile" accept=".json" />
   `;
   document.body.appendChild(formContainer);
+
+  // Add event listeners
+  document.getElementById("addQuoteBtn").addEventListener("click", addQuote);
+  document.getElementById("exportBtn").addEventListener("click", exportToJsonFile);
+  document.getElementById("importFile").addEventListener("change", importFromJsonFile);
 }
 
 // Function to export quotes to a JSON file
