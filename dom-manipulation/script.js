@@ -23,7 +23,7 @@ function displayNotification(message) {
 }
 
 // Function to sync quotes between local and server data
-async function syncQuotes() {
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(serverUrl);
     if (!response.ok) throw new Error("Failed to fetch data from server.");
@@ -230,15 +230,4 @@ function updateLocalQuotes(serverQuotes) {
     if (!localQuote) {
       quotes.push({ id: serverQuote.id, text: serverQuote.title, category: "General" });
     } else if (localQuote.text !== serverQuote.title) {
-      resolveConflict(localQuote, serverQuote);
-    }
-  });
-
-  saveQuotes();
-  displayQuotes(quotes);
-}
-
-// Call syncQuotes every 60 seconds
-setInterval(syncQuotes, 60000);
-
-// Call initialize
+ 
